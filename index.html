@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nue</title>
+  <style>
+    :root{--dark:#030712;--blue:#0a84ff;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;width:100%;overflow:hidden;font-family:Inter,Helvetica,Arial,sans-serif;transition:background 1s,color 1s}
+    body{background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;position:relative}
+
+    /* Subtle static swirl */
+    body::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.06)0%,transparent 70%);pointer-events:none}
+
+    /* Logo */
+    .logo{cursor:pointer;transition:transform .6s}
+    .logo svg{width:120px;height:120px;fill:var(--blue);filter:drop-shadow(0 0 22px var(--blue));animation:pulse 8s ease-in-out infinite}
+    @keyframes pulse{
+      0%,100%{transform:scale(1);filter:drop-shadow(0 0 18px var(--blue));}
+      50%{transform:scale(1.1);filter:drop-shadow(0 0 38px var(--blue));}
+    }
+
+    /* Hold expanded glow while hovering (only on the home screen) */
+    body:not(.careers) .logo:hover svg{
+      animation:none;
+      transform:scale(1.1);
+      filter:drop-shadow(0 0 38px var(--blue));
+    }
+
+    /* Careers state */
+    body.careers{background:var(--blue);color:#000}
+    body.careers .logo{position:fixed;top:40px;left:40px;transform:none}
+    body.careers .logo svg{width:60px;height:60px;fill:#000;filter:none;animation:pulseSmall 4s ease-in-out infinite}
+    @keyframes pulseSmall{0%,100%{transform:scale(1);}50%{transform:scale(1.1);} }
+    body.careers .careers-panel{opacity:1;transform:translate(calc(-50% + 40px),-50%)}
+
+    /* Careers panel */
+    .careers-panel{position:absolute;top:50%;left:50%;max-width:420px;text-align:left;font-size:20px;line-height:1.6;opacity:0;pointer-events:none;transform:translate(-50%,-50%);transition:opacity .2s ease .6s}
+    .careers-panel a{color:#000;text-decoration:none;border-bottom:1px solid rgba(0,0,0,.4)}
+
+    .cursor{display:inline-block;width:10px;background:#000;margin-left:2px;animation:blink 1s steps(2) infinite}
+    @keyframes blink{0%,50%{opacity:0;}51%,100%{opacity:1;}}
+
+    /* Tagline */
+    .tagline{position:fixed;bottom:40px;right:40px;font-size:20px;line-height:1.6;font-weight:400;color:#000;opacity:0;pointer-events:none}
+  </style>
+</head>
+<body>
+  <div class="logo" id="nueLogo" aria-label="Toggle careers">
+    <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M20 80 V20 Q20 10 30 10 H40 Q50 10 50 20 V65 Q50 75 60 75 H70 Q80 75 80 65 V20"/></svg>
+  </div>
+
+  <div class="careers-panel" id="panel" aria-hidden="true"><span id="type"></span><span class="cursor" id="cur"></span></div>
+
+  <div class="tagline" id="tagline"></div>
+
+  <script>
+    const body=document.body;
+    const logo=document.getElementById('nueLogo');
+    const panel=document.getElementById('panel');
+    const typeTarget=document.getElementById('type');
+    const cursor=document.getElementById('cur');
+    const tagline=document.getElementById('tagline');
+
+    const lines=[
+      "We're hiring…",
+      "Exceptional talent of all kinds.",
+      "",
+      "Intrigued?",
+      "Tell us why we'd work brilliantly together.",
+      "",
+      "alex@nuesolution.com"
+    ];
+
+    const taglineText="Reimagine living.";
+
+    let typing=false;
+
+    function typeString(target,text,cb){
+      let idx=0;
+      (function loop(){
+        if(idx<=text.length){
+          target.textContent=text.slice(0,idx);
+          idx++;setTimeout(loop,30);
+        }else{cb&&cb();}
+      })();
+    }
+
+    function typeLines(){
+      let line=0,char=0;typing=true;cursor.style.display='inline-block';
+      function type(){
+        if(line<lines.length){
+          if(char<=lines[line].length){
+            const previous=lines.slice(0,line).join('<br>');
+            typeTarget.innerHTML=previous+(line?'<br>':'')+lines[line].slice(0,char);
+            char++;setTimeout(type,30);
+          }else{line++;char=0;setTimeout(type,(lines[line-1]==="Intrigued?")?800:300);} 
+        }else{
+          cursor.style.display='none';
+          typeString(tagline,taglineText,()=>{typing=false;});
+        }
+      }
+      type();
+    }
+
+    logo.addEventListener('click',()=>{
+      if(!body.classList.contains('careers')){
+        body.classList.add('careers');
+        panel.style.pointerEvents='auto';
+        tagline.textContent='';tagline.style.opacity='0';
+        typeTarget.innerHTML='';
+        setTimeout(typeLines,400);
+      }else{
+        if(typing) return;
+        body.classList.remove('careers');
+        panel.style.pointerEvents='none';
+        typeTarget.innerHTML='';cursor.style.display='inline-block';
+        tagline.textContent='';tagline.style.opacity='0';
+      }
+    });
+  </script>
+</body>
+</html>
